@@ -1,0 +1,101 @@
+﻿Скрипт SQL, который формирует выборку по абонентам, которые:
+1. Подключились в декабре (с 1 по 31), не реактивации
+WITH 
+table1 as (
+SELECT month, company_name, count(sub_id) as abon_quantity 
+FROM subscriber 
+WHERE status = ‘1’ and pp_type_id = ‘Voice’ 
+GROUP BY 1, 2),
+
+
+table2 as (
+SELECT table2.month, table2.sub_id, table2.company_name, table2.status, table2.pp_type_id, table1.abon_quantity 
+FROM subscriber 
+LEFT JOIN table1 on table1.company_name=table2.company_name and table1.month=table2.month
+WHERE table2.status = ‘1’ and table2.pp_type_id = ‘Voice’
+
+
+
+
+SELECT a.date_act, a.sub_id, b.pp_name, c.service_name, d.company_name, e.abon_quantity
+FROM gross as a
+LEFT JOIN tariff as b on a.sub_id=b.sub_id
+LEFT JOIN service as c on a.sub_id=c.sub_id
+LEFT JOIN subscriber as d on a.sub_id=d.sub_id
+LEFT JOIN table2 as e on a.sub_id=e.sub_id and extract(month from a.date_act)=extract(month from e.month)
+WHERE a.date_act between ‘2022-12-01’ and ‘2022-12-31’ and a.reactivation = ’0’ and e.month = ‘2022-12-01’
+
+
+2. Тип клиента Business
+WITH 
+table1 as (
+SELECT month, company_name, count(sub_id) as abon_quantity 
+FROM subscriber 
+WHERE status = ‘1’ and pp_type_id = ‘Voice’ 
+GROUP BY 1, 2),
+
+
+table2 as (
+SELECT table2.month, table2.sub_id, table2.company_name, table2.status, table2.pp_type_id, table1.abon_quantity 
+FROM subscriber 
+LEFT JOIN table1 on table1.company_name=table2.company_name and table1.month=table2.month
+WHERE table2.status = ‘1’ and table2.pp_type_id = ‘Voice’
+
+
+SELECT a.date_act, a.sub_id, b.pp_name, c.service_name, d.company_name, e.abon_quantity
+FROM gross as a
+LEFT JOIN tariff as b on a.sub_id=b.sub_id
+LEFT JOIN service as c on a.sub_id=c.sub_id
+LEFT JOIN subscriber as d on a.sub_id=d.sub_id
+LEFT JOIN table2 as e on a.sub_id=e.sub_id and extract(month from a.date_act)=extract(month from e.month)
+WHERE d.customer_type = ‘Business’
+
+
+3. Подключились на один из тарифных планов «Бизнес-план», «Бизнес-план 1.0», «Бизнес-план 2.0», «Бизнес-план 3.0», «Бизнес-план 4.0» и продолжают пользоваться сегодня
+WITH 
+table1 as (
+SELECT month, company_name, count(sub_id) as abon_quantity 
+FROM subscriber 
+WHERE status = ‘1’ and pp_type_id = ‘Voice’ 
+GROUP BY 1, 2),
+
+
+table2 as (
+SELECT table2.month, table2.sub_id, table2.company_name, table2.status, table2.pp_type_id, table1.abon_quantity 
+FROM subscriber 
+LEFT JOIN table1 on table1.company_name=table2.company_name and table1.month=table2.month
+WHERE table2.status = ‘1’ and table2.pp_type_id = ‘Voice’
+
+
+SELECT a.date_act, a.sub_id, b.pp_name, c.service_name, d.company_name, e.abon_quantity
+FROM gross as a
+LEFT JOIN tariff as b on a.sub_id=b.sub_id
+LEFT JOIN service as c on a.sub_id=c.sub_id
+LEFT JOIN subscriber as d on a.sub_id=d.sub_id
+LEFT JOIN table2 as e on a.sub_id=e.sub_id and extract(month from a.date_act)=extract(month from e.month)
+WHERE b.pp_name in (‘Бизнес-план’, ‘Бизнес-план 1.0’, ‘Бизнес-план 2.0’, ‘Бизнес-план 3.0’, ‘Бизнес-план 4.0’) and b.pp_end_date = ‘2999-01-01 00:00:00’
+
+
+4. Подключили один из пакетов «Безлимитный интернет 512», «Безлимитный интернет 1», «Безлимитный интернет 2» в дату подключения абонента и продолжают пользоваться на сегодня
+WITH 
+table1 as (
+SELECT month, company_name, count(sub_id) as abon_quantity 
+FROM subscriber 
+WHERE status = ‘1’ and pp_type_id = ‘Voice’ 
+GROUP BY 1, 2),
+
+
+table2 as (
+SELECT table2.month, table2.sub_id, table2.company_name, table2.status, table2.pp_type_id, table1.abon_quantity 
+FROM subscriber 
+LEFT JOIN table1 on table1.company_name=table2.company_name and table1.month=table2.month
+WHERE table2.status = ‘1’ and table2.pp_type_id = ‘Voice’
+
+
+SELECT a.date_act, a.sub_id, b.pp_name, c.service_name, d.company_name, e.abon_quantity
+FROM gross as a
+LEFT JOIN tariff as b on a.sub_id=b.sub_id
+LEFT JOIN service as c on a.sub_id=c.sub_id
+LEFT JOIN subscriber as d on a.sub_id=d.sub_id
+LEFT JOIN table2 as e on a.sub_id=e.sub_id and extract(month from a.date_act)=extract(month from e.month)
+WHERE c.service_name in (‘Безлимитный интернет 512’, ‘Безлимитный интернет 1’, ‘Безлимитный интернет 2’) and c.service_start_date = a.date_act and c.service_stop_date = ‘2999-01-01 00:00:00’
